@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Presupuesto Perla Negra</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --negro: #121212; --dorado: #d4af37; --perla: #f8f8f8; --input-bg: #1e1e1e; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f0f0; padding: 10px; margin: 0; }
+        
+        .cotizacion-export { max-width: 500px; margin: auto; background: var(--negro); color: var(--perla); border-radius: 20px; border: 3px solid var(--dorado); overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        
+        .header { padding: 25px; text-align: center; background: linear-gradient(135deg, #2a2a2a, #0a0a0a); border-bottom: 2px solid var(--dorado); }
+        .header h1 { font-family: 'Cinzel', serif; color: var(--dorado); margin: 0; font-size: 24px; letter-spacing: 2px; }
+        
+        .form-section { padding: 15px 20px; border-bottom: 1px solid #333; }
+        .section-title { font-family: 'Cinzel', serif; color: var(--dorado); font-size: 13px; border-bottom: 1px solid var(--dorado); margin-bottom: 10px; display: inline-block; }
+        
+        label { display: block; color: #888; font-size: 10px; text-transform: uppercase; margin-top: 10px; letter-spacing: 1px; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box; }
+        
+        .alert-especial { color: #ffeb3b; font-size: 12px; font-weight: bold; text-align: center; display: none; margin-bottom: 10px; padding: 8px; background: rgba(255,235,59,0.1); border-radius: 4px; border: 1px solid rgba(255,235,59,0.3); }
+        .beneficio-tag { background: rgba(255, 255, 255, 0.1); border: 1px dashed var(--dorado); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 12px; text-align: center; color: var(--perla); }
+        
+        .resumen { background: linear-gradient(135deg, var(--dorado) 0%, #b8860b 100%); color: var(--negro); padding: 20px; margin: 15px; border-radius: 15px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        .row.total { font-size: 18px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; margin-top: 10px; }
+        
+        .btn-wa { width: 100%; padding: 18px; background: #25d366; border: none; color: white; font-weight: 700; cursor: pointer; font-size: 15px; border-radius: 10px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+<div class="cotizacion-export" id="presupuesto-final">
+    <div class="header">
+        <h1>MARIACHI PERLA NEGRA</h1>
+        <p style="font-size: 10px; letter-spacing: 2px; color: var(--perla);">COTIZADOR EN LÍNEA</p>
+    </div>
+
+    <div class="form-section">
+        <div id="aviso-festivo" class="alert-especial">✨ FECHA ESPECIAL SELECCIONADA ✨</div>
+        <div class="section-title">DETALLES DE TU EVENTO</div>
+        
+        <label>Tu Nombre</label>
+        <input type="text" id="nombre_cliente" placeholder="Escribe tu nombre">
+
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>Fecha</label>
+                <input type="date" id="fecha" onchange="actualizarInterfaz()">
+            </div>
+            <div style="flex: 1;">
+                <label>Elementos</label>
+                <select id="elementos" onchange="calcular()">
+                    <option value="">Elegir fecha...</option>
+                </select>
+            </div>
+        </div>
+        
+        <label>Horas de Servicio</label>
+        <input type="number" id="horas" value="1" min="1" oninput="calcular()">
+    </div>
+
+    <div class="resumen">
+        <div id="mensaje-beneficio" class="beneficio-tag">
+            ⭐ <strong>¡PROMOCIÓN ACTIVADA!</strong><br>
+            Tarifa preferencial por tiempo extendido.
+        </div>
+
+        <div class="row"><span>Precio por Hora:</span><span id="precio_unitario">$0.00</span></div>
+        <div class="row total"><span>TOTAL ESTIMADO:</span><span id="total_resumen">$0.00</span></div>
+        
+        <a id="wa-link" href="#" target="_blank" class="btn-wa" onclick="prepararMensaje()">
+            CONSULTAR DISPONIBILIDAD
+        </a>
+    </div>
+</div>
+
+<script>
+    const festivos = ["05-10", "06-21", "09-15", "12-25", "01-01"];
+
+    function actualizarInterfaz() {
+        const fechaVal = document.getElementById('fecha').value;
+        const select = document.getElementById('elementos');
+        const aviso = document.getElementById('aviso-festivo');
+        if(!fechaVal) return;
+
+        const dateObj = new Date(fechaVal + 'T00:00:00');
+        const mesDia = (dateObj.getMonth() + 1).toString().padStart(2, '0') + '-' + dateObj.getDate().toString().padStart(2, '0');
+        const esFinDeSemana = (dateObj.getDay() === 5 || dateObj.getDay() === 6);
+        const esFestivo = festivos.includes(mesDia);
+
+        select.innerHTML = "";
+        if (esFestivo) {
+            aviso.style.display = "block";
+            agregarOpcion(select, 8, "8 Elementos (Especial)");
+        } else {
+            aviso.style.display = "none";
+            agregarOpcion(select, 5, "5 Elementos");
+            agregarOpcion(select, 6, "6 Elementos");
+            agregarOpcion(select, 8, "8 Elementos");
+            if (!esFinDeSemana) agregarOpcion(select, 11, "11 Elementos (Gala)");
+        }
+        calcular();
+    }
+
+    function agregarOpcion(select, val, text) {
+        let opt = document.createElement('option');
+        opt.value = val; opt.innerHTML = text; select.appendChild(opt);
+    }
+
+    function calcular() {
+        const fechaVal = document.getElementById('fecha').value;
+        if(!fechaVal) return;
+
+        const numElem = parseInt(document.getElementById('elementos').value);
+        const horas = parseInt(document.getElementById('horas').value) || 0;
+        
+        const dateObj = new Date(fechaVal + 'T00:00:00');
+        const mesDia = (dateObj.getMonth() + 1).toString().padStart(2, '0') + '-' + dateObj.getDate().toString().padStart(2, '0');
+        const esFestivo = festivos.includes(mesDia);
+
+        let precioHora = 0; let total = 0;
+
+        if (esFestivo) {
+            precioHora = 3800; total = precioHora * horas;
+            document.getElementById('mensaje-beneficio').style.display = "none";
+        } else {
+            if (numElem === 5) precioHora = 2000;
+            if (numElem === 6) precioHora = 2300;
+            if (numElem === 8) precioHora = 2800;
+            if (numElem === 11) precioHora = 4200;
+
+            if (numElem === 8 && horas >= 2) {
+                document.getElementById('mensaje-beneficio').style.display = "block";
+                total = (horas === 2) ? 5000 : 5000 + ((horas - 2) * 2200);
+            } else {
+                total = precioHora * horas;
+                document.getElementById('mensaje-beneficio').style.display = "none";
+            }
+        }
+
+        const fM = (a) => '$' + a.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        document.getElementById('precio_unitario').innerText = fM(precioHora);
+        document.getElementById('total_resumen').innerText = fM(total);
+    }
+
+    function prepararMensaje() {
+        const cliente = document.getElementById('nombre_cliente').value || "Cliente";
+        const fecha = document.getElementById('fecha').value;
+        const total = document.getElementById('total_resumen').innerText;
+        const elem = document.getElementById('elementos').options[document.getElementById('elementos').selectedIndex]?.text;
+        
+        const msg = `Hola Mariachi Perla Negra, me interesa una cotización:\n\n` +
+                    `*Cliente:* ${cliente}\n` +
+                    `*Fecha:* ${fecha}\n` +
+                    `*Servicio:* ${elem}\n` +
+                    `*Total Estimado:* ${total}\n\n` +
+                    `¿Me podrían confirmar si tienen disponibilidad?`;
+        
+        // Aquí está tu número ya configurado
+        const url = `https://wa.me/522223976646?text=${encodeURIComponent(msg)}`;
+        document.getElementById('wa-link').href = url;
+    }
+</script>
+</body>
+</html>
