@@ -16,10 +16,9 @@
         label { display: block; color: #888; font-size: 10px; text-transform: uppercase; margin-top: 10px; letter-spacing: 1px; }
         input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box; }
         
-        /* ESTILO DE LA LEYENDA */
         .leyenda-restriccion { font-size: 11px; color: #aaa; margin-top: 10px; line-height: 1.4; border-left: 2px solid var(--dorado); padding-left: 10px; font-style: italic; }
-        
         .alert-error { color: #ff5252; font-size: 12px; font-weight: bold; text-align: center; display: none; margin-top: 10px; padding: 10px; background: rgba(255,82,82,0.1); border-radius: 8px; border: 1px solid #ff5252; }
+        
         .resumen { background: linear-gradient(135deg, var(--dorado) 0%, #b8860b 100%); color: var(--negro); padding: 20px; margin: 15px; border-radius: 15px; }
         .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
         .row.total { font-size: 18px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; margin-top: 10px; }
@@ -52,11 +51,11 @@
         </select>
         
         <div class="leyenda-restriccion">
-            * Grupos de 5 y 6 elementos solo disponibles de Lunes a Jueves.<br>
-            * Viernes, Sábado y Domingo: Mínimo 8 elementos.
+            * Lunes a Jueves: Todas las opciones disponibles.<br>
+            * Viernes, Sábado y Domingo: Solo disponible grupo de 8 elementos.
         </div>
 
-        <div id="error-msg" class="alert-error">ESTA OPCIÓN NO ESTÁ DISPONIBLE EN FIN DE SEMANA</div>
+        <div id="error-msg" class="alert-error">ESTA AGRUPACIÓN NO ESTÁ DISPONIBLE EN LA FECHA SELECCIONADA</div>
 
         <label>Horas de Servicio</label>
         <input type="number" id="horas" value="1" min="1" oninput="calcular()">
@@ -78,52 +77,12 @@
         
         if(!fechaVal) return;
 
-        // Identificar día de la semana
         const partes = fechaVal.split('-');
         const dt = new Date(partes[0], partes[1] - 1, partes[2]);
         const diaSemana = dt.getDay(); // 0=D, 5=V, 6=S
         const esFinDeSemana = (diaSemana === 0 || diaSemana === 5 || diaSemana === 6);
 
-        // BLOQUEO DE CÁLCULO
-        if (esFinDeSemana && (numElem === 5 || numElem === 6)) {
+        // RESTRICCIÓN TOTAL: En fin de semana SOLO se permite el de 8
+        if (esFinDeSemana && numElem !== 8) {
             errorMsg.style.display = "block";
             document.getElementById('precio_unitario').innerText = "---";
-            document.getElementById('total_resumen').innerText = "NO DISPONIBLE";
-            return;
-        } else {
-            errorMsg.style.display = "none";
-        }
-
-        let precioHora = 0;
-        if (numElem === 5) precioHora = 2000;
-        if (numElem === 6) precioHora = 2300;
-        if (numElem === 8) precioHora = 2800;
-        if (numElem === 11) precioHora = 4200;
-
-        let total = (numElem === 8 && horas >= 2) ? 
-                    (5000 + ((horas - 2) * 2200)) : 
-                    (precioHora * horas);
-        if (numElem === 8 && horas === 2) total = 5000;
-
-        const fM = (a) => '$' + a.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-        document.getElementById('precio_unitario').innerText = fM(precioHora);
-        document.getElementById('total_resumen').innerText = fM(total);
-    }
-
-    function prepararMensaje() {
-        const cliente = document.getElementById('nombre_cliente').value || "Cliente";
-        const fecha = document.getElementById('fecha').value;
-        const total = document.getElementById('total_resumen').innerText;
-        const elem = document.getElementById('elementos').options[document.getElementById('elementos').selectedIndex]?.text;
-        
-        if(total === "NO DISPONIBLE") {
-            alert("Por favor selecciona una opción válida para la fecha elegida.");
-            return false;
-        }
-
-        const msg = `Hola Mariachi Perla Negra, coticé un evento:\n*Cliente:* ${cliente}\n*Fecha:* ${fecha}\n*Servicio:* ${elem}\n*Total:* ${total}`;
-        document.getElementById('wa-link').href = `https://wa.me/522223976646?text=${encodeURIComponent(msg)}`;
-    }
-</script>
-</body>
-</html>
