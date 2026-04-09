@@ -79,91 +79,89 @@
 </div>
 
 <script>
-    const festivos = ["05-10", "06-21", "09-15", "12-25", "01-01"];
+    <script>
+const festivos = ["05-10", "06-21", "09-15", "12-25", "01-01"];
 
-    function actualizarInterfaz() {
-        const fechaVal = document.getElementById('fecha').value;
-        const select = document.getElementById('elementos');
-        const aviso = document.getElementById('aviso-festivo');
-        if(!fechaVal) return;
+function actualizarInterfaz() {
+    const fechaVal = document.getElementById('fecha').value;
+    const select = document.getElementById('elementos');
+    const aviso = document.getElementById('aviso-festivo');
 
-        const dateObj = new Date(fechaVal + 'T00:00:00');
-        const mesDia = (dateObj.getMonth() + 1).toString().padStart(2, '0') + '-' + dateObj.getDate().toString().padStart(2, '0');
-        const esFinDeSemana = (dateObj.getDay() === 5 || dateObj.getDay() === 6);
-        const esFestivo = festivos.includes(mesDia);
+    select.innerHTML = "";
 
-        select.innerHTML = "";
-        if (esFestivo) {
-            aviso.style.display = "block";
-            agregarOpcion(select, 8, "8 Elementos (Especial)");
-        } else {
-            aviso.style.display = "none";
-            agregarOpcion(select, 5, "5 Elementos");
-            agregarOpcion(select, 6, "6 Elementos");
-            agregarOpcion(select, 8, "8 Elementos");
-            if (!esFinDeSemana) agregarOpcion(select, 11, "11 Elementos (Gala)");
-        }
-        calcular();
+    if (!fechaVal) {
+        select.innerHTML = '<option value="">Elegir fecha...</option>';
+        return;
     }
 
-    function agregarOpcion(select, val, text) {
-        let opt = document.createElement('option');
-        opt.value = val; opt.innerHTML = text; select.appendChild(opt);
+    const fecha = new Date(fechaVal);
+    const dia = fecha.getDay(); // 0 = domingo, 6 = sábado
+
+    const mesDia = fechaVal.substring(5);
+    const esFestivo = festivos.includes(mesDia);
+    const esFinDeSemana = (dia === 0 || dia === 6);
+
+    // 🔥 FIN DE SEMANA (PRIORIDAD)
+    if (esFinDeSemana) {
+        aviso.style.display = "none";
+
+        select.innerHTML = `
+            <option value="8">8 Elementos</option>
+        `;
     }
 
-    function calcular() {
-        const fechaVal = document.getElementById('fecha').value;
-        if(!fechaVal) return;
+    // 🎉 FESTIVO
+    else if (esFestivo) {
+        aviso.style.display = "block";
 
-        const numElem = parseInt(document.getElementById('elementos').value);
-        const horas = parseInt(document.getElementById('horas').value) || 0;
-        
-        const dateObj = new Date(fechaVal + 'T00:00:00');
-        const mesDia = (dateObj.getMonth() + 1).toString().padStart(2, '0') + '-' + dateObj.getDate().toString().padStart(2, '0');
-        const esFestivo = festivos.includes(mesDia);
-
-        let precioHora = 0; let total = 0;
-
-        if (esFestivo) {
-            precioHora = 3800; total = precioHora * horas;
-            document.getElementById('mensaje-beneficio').style.display = "none";
-        } else {
-            if (numElem === 5) precioHora = 2000;
-            if (numElem === 6) precioHora = 2300;
-            if (numElem === 8) precioHora = 2800;
-            if (numElem === 11) precioHora = 4200;
-
-            if (numElem === 8 && horas >= 2) {
-                document.getElementById('mensaje-beneficio').style.display = "block";
-                total = (horas === 2) ? 5000 : 5000 + ((horas - 2) * 2200);
-            } else {
-                total = precioHora * horas;
-                document.getElementById('mensaje-beneficio').style.display = "none";
-            }
-        }
-
-        const fM = (a) => '$' + a.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-        document.getElementById('precio_unitario').innerText = fM(precioHora);
-        document.getElementById('total_resumen').innerText = fM(total);
+        select.innerHTML = `
+            <option value="8">8 Elementos (Tarifa especial)</option>
+        `;
     }
 
-    function prepararMensaje() {
-        const cliente = document.getElementById('nombre_cliente').value || "Cliente";
-        const fecha = document.getElementById('fecha').value;
-        const total = document.getElementById('total_resumen').innerText;
-        const elem = document.getElementById('elementos').options[document.getElementById('elementos').selectedIndex]?.text;
-        
-        const msg = `Hola Mariachi Perla Negra, me interesa una cotización:\n\n` +
-                    `*Cliente:* ${cliente}\n` +
-                    `*Fecha:* ${fecha}\n` +
-                    `*Servicio:* ${elem}\n` +
-                    `*Total Estimado:* ${total}\n\n` +
-                    `¿Me podrían confirmar si tienen disponibilidad?`;
-        
-        // Aquí está tu número ya configurado
-        const url = `https://wa.me/522223976646?text=${encodeURIComponent(msg)}`;
-        document.getElementById('wa-link').href = url;
+    // 📅 NORMAL
+    else {
+        aviso.style.display = "none";
+
+        select.innerHTML = `
+            <option value="6">6 Elementos</option>
+            <option value="7">7 Elementos</option>
+            <option value="8">8 Elementos</option>
+        `;
     }
+
+    calcular();
+}
+
+
+// 🔢 EJEMPLO DE CÁLCULO (ajústalo si ya tienes uno)
+function calcular() {
+    const elementos = parseInt(document.getElementById('elementos').value);
+    const horas = parseInt(document.getElementById('horas').value);
+
+    if (!elementos || !horas) return;
+
+    let precioBase = 0;
+
+    // 💰 precios base (ajústalos a tu realidad)
+    if (elementos === 6) precioBase = 2500;
+    if (elementos === 7) precioBase = 3000;
+    if (elementos === 8) precioBase = 3500;
+
+    // 🎯 descuento por horas
+    let total = precioBase * horas;
+
+    if (horas >= 2) {
+        total *= 0.9; // 10% descuento
+        document.getElementById('mensaje-beneficio').style.display = "block";
+    } else {
+        document.getElementById('mensaje-beneficio').style.display = "none";
+    }
+
+    document.getElementById('precio_unitario').innerText = `$${precioBase.toFixed(2)}`;
+    document.getElementById('total_resumen').innerText = `$${total.toFixed(2)}`;
+}
+</script>
 </script>
 </body>
 </html>
