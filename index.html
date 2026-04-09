@@ -15,7 +15,11 @@
         .section-title { font-family: 'Cinzel', serif; color: var(--dorado); font-size: 13px; border-bottom: 1px solid var(--dorado); margin-bottom: 10px; display: inline-block; }
         label { display: block; color: #888; font-size: 10px; text-transform: uppercase; margin-top: 10px; letter-spacing: 1px; }
         input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box; }
-        .alert-especial { color: #ffeb3b; font-size: 12px; font-weight: bold; text-align: center; display: none; margin-bottom: 10px; padding: 8px; background: rgba(255,235,59,0.1); border-radius: 4px; border: 1px solid rgba(255,235,59,0.3); }
+        
+        /* ESTILO DE LA LEYENDA */
+        .leyenda-restriccion { font-size: 11px; color: #aaa; margin-top: 10px; line-height: 1.4; border-left: 2px solid var(--dorado); padding-left: 10px; font-style: italic; }
+        
+        .alert-error { color: #ff5252; font-size: 12px; font-weight: bold; text-align: center; display: none; margin-top: 10px; padding: 10px; background: rgba(255,82,82,0.1); border-radius: 8px; border: 1px solid #ff5252; }
         .resumen { background: linear-gradient(135deg, var(--dorado) 0%, #b8860b 100%); color: var(--negro); padding: 20px; margin: 15px; border-radius: 15px; }
         .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
         .row.total { font-size: 18px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; margin-top: 10px; }
@@ -31,25 +35,29 @@
     </div>
 
     <div class="form-section">
-        <div id="aviso-festivo" class="alert-especial">✨ FECHA DE ALTA DEMANDA ✨</div>
-        <div class="section-title">DETALLES DEL EVENTO</div>
+        <div class="section-title">DATOS DEL EVENTO</div>
         
         <label>Nombre del Cliente</label>
         <input type="text" id="nombre_cliente" placeholder="Escribe tu nombre">
 
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label>Fecha</label>
-                <input type="date" id="fecha" onchange="actualizarInterfaz()">
-            </div>
-            <div style="flex: 1;">
-                <label>Elementos</label>
-                <select id="elementos" onchange="calcular()">
-                    <option value="">Elegir fecha...</option>
-                </select>
-            </div>
-        </div>
+        <label>Fecha del Evento</label>
+        <input type="date" id="fecha" onchange="calcular()">
+
+        <label>Número de Elementos</label>
+        <select id="elementos" onchange="calcular()">
+            <option value="5">5 Elementos</option>
+            <option value="6">6 Elementos</option>
+            <option value="8">8 Elementos</option>
+            <option value="11">11 Elementos</option>
+        </select>
         
+        <div class="leyenda-restriccion">
+            * Grupos de 5 y 6 elementos solo disponibles de Lunes a Jueves.<br>
+            * Viernes, Sábado y Domingo: Mínimo 8 elementos.
+        </div>
+
+        <div id="error-msg" class="alert-error">ESTA OPCIÓN NO ESTÁ DISPONIBLE EN FIN DE SEMANA</div>
+
         <label>Horas de Servicio</label>
         <input type="number" id="horas" value="1" min="1" oninput="calcular()">
     </div>
@@ -62,57 +70,29 @@
 </div>
 
 <script>
-    const festivos = ["05-10", "06-21", "09-15", "12-25", "01-01"];
-
-    function actualizarInterfaz() {
-        const fechaVal = document.getElementById('fecha').value;
-        const select = document.getElementById('elementos');
-        const aviso = document.getElementById('aviso-festivo');
-        if(!fechaVal) return;
-
-        // SEPARACIÓN MANUAL PARA EVITAR ERRORES DE DÍA (PUEBLA TIME)
-        const partes = fechaVal.split('-');
-        const y = parseInt(partes[0]);
-        const m = parseInt(partes[1]) - 1;
-        const d = parseInt(partes[2]);
-        
-        // Creamos fecha exacta
-        const dt = new Date(y, m, d);
-        const diaSemana = dt.getDay(); // 0=D, 1=L, 2=M, 3=M, 4=J, 5=V, 6=S
-        const mmdd = (m + 1).toString().padStart(2, '0') + '-' + d.toString().padStart(2, '0');
-
-        const esFestivo = festivos.includes(mmdd);
-        // Sábado (6) y Domingo (0) son "Fin de Semana"
-        const esFinDeSemana = (diaSemana === 0 || diaSemana === 6);
-
-        select.innerHTML = "";
-        
-        if (esFestivo) {
-            aviso.style.display = "block";
-            agregarOpcion(select, 8, "8 Elementos (Especial)");
-        } else {
-            aviso.style.display = "none";
-            agregarOpcion(select, 5, "5 Elementos");
-            agregarOpcion(select, 6, "6 Elementos");
-            agregarOpcion(select, 8, "8 Elementos");
-            
-            // SOLO AGREGA 11 ELEMENTOS SI ES LUNES, MARTES, MIÉRCOLES, JUEVES O VIERNES
-            if (!esFinDeSemana) {
-                agregarOpcion(select, 11, "11 Elementos (Gala)");
-            }
-        }
-        calcular();
-    }
-
-    function agregarOpcion(select, val, text) {
-        let opt = document.createElement('option');
-        opt.value = val; opt.innerHTML = text; select.appendChild(opt);
-    }
-
     function calcular() {
+        const fechaVal = document.getElementById('fecha').value;
         const numElem = parseInt(document.getElementById('elementos').value);
         const horas = parseInt(document.getElementById('horas').value) || 0;
-        if(isNaN(numElem)) return;
+        const errorMsg = document.getElementById('error-msg');
+        
+        if(!fechaVal) return;
+
+        // Identificar día de la semana
+        const partes = fechaVal.split('-');
+        const dt = new Date(partes[0], partes[1] - 1, partes[2]);
+        const diaSemana = dt.getDay(); // 0=D, 5=V, 6=S
+        const esFinDeSemana = (diaSemana === 0 || diaSemana === 5 || diaSemana === 6);
+
+        // BLOQUEO DE CÁLCULO
+        if (esFinDeSemana && (numElem === 5 || numElem === 6)) {
+            errorMsg.style.display = "block";
+            document.getElementById('precio_unitario').innerText = "---";
+            document.getElementById('total_resumen').innerText = "NO DISPONIBLE";
+            return;
+        } else {
+            errorMsg.style.display = "none";
+        }
 
         let precioHora = 0;
         if (numElem === 5) precioHora = 2000;
@@ -135,6 +115,12 @@
         const fecha = document.getElementById('fecha').value;
         const total = document.getElementById('total_resumen').innerText;
         const elem = document.getElementById('elementos').options[document.getElementById('elementos').selectedIndex]?.text;
+        
+        if(total === "NO DISPONIBLE") {
+            alert("Por favor selecciona una opción válida para la fecha elegida.");
+            return false;
+        }
+
         const msg = `Hola Mariachi Perla Negra, coticé un evento:\n*Cliente:* ${cliente}\n*Fecha:* ${fecha}\n*Servicio:* ${elem}\n*Total:* ${total}`;
         document.getElementById('wa-link').href = `https://wa.me/522223976646?text=${encodeURIComponent(msg)}`;
     }
