@@ -45,24 +45,23 @@
             <option value="11">11 Elementos</option>
         </select>
         
-        <div id="error" class="msg-error">ESTA OPCIÓN NO DISPONIBLE EN FIN DE SEMANA (Solo 8 elementos)</div>
+        <div id="error" class="msg-error">OPCIÓN NO DISPONIBLE EN ESTA FECHA (Mínimo 8 elementos)</div>
         <div id="festivo-aviso" class="msg-festivo">✨ TARIFA DE FECHA ESPECIAL ✨</div>
 
         <label>Horas</label>
         <input type="number" id="hrs" value="1" min="1" oninput="hacerCuentas()">
 
         <div class="resumen-caja">
-            <small id="sub-txt">TOTAL ESTIMADO</small>
+            <small>TOTAL ESTIMADO</small>
             <span class="total-txt" id="total">$0.00</span>
         </div>
 
         <a href="#" class="btn-enviar" onclick="enviar()">RESERVAR POR WHATSAPP</a>
-        <p class="nota">* Lu a Ju: Todas las opciones.<br>* Vi, Sá y Do: Solo 8 elementos.<br>* Precios sujetos a disponibilidad.</p>
+        <p class="nota">* Lu a Ju: Todas las opciones.<br>* Vi, Sá, Do y Festivos: Solo 8 elementos.</p>
     </div>
 </div>
 
 <script>
-    // LISTA DE DÍAS FESTIVOS (Mes-Día)
     const festivos = ["05-10", "06-21", "09-15", "12-25", "01-01"];
 
     function hacerCuentas() {
@@ -75,7 +74,6 @@
 
         if (!f) return;
 
-        // PARSEO DE FECHA
         const partes = f.split('-');
         const dt = new Date(partes[0], partes[1] - 1, partes[2]);
         const diaSemana = dt.getDay(); // 0=D, 5=V, 6=S
@@ -84,8 +82,8 @@
         const esFinde = (diaSemana === 0 || diaSemana === 5 || diaSemana === 6);
         const esFestivo = festivos.includes(mmdd);
 
-        // 1. RESTRICCIÓN DE FIN DE SEMANA
-        if (esFinde && e !== 8) {
+        // CANDADO UNIFICADO: Si es Festivo O Fin de semana, solo permite el de 8
+        if ((esFinde || esFestivo) && e !== 8) {
             error.style.display = "block";
             avisoFestivo.style.display = "none";
             totalVista.innerText = "---";
@@ -94,24 +92,20 @@
             error.style.display = "none";
         }
 
-        // 2. CÁLCULO DE PRECIOS
-        let precioPorHora = 0;
         let totalFinal = 0;
 
         if (esFestivo) {
-            // Precio especial para festivos
             avisoFestivo.style.display = "block";
-            precioPorHora = 3800;
-            totalFinal = precioPorHora * h;
+            // Tarifa fija de festivo por hora
+            totalFinal = 3800 * h;
         } else {
             avisoFestivo.style.display = "none";
-            // Precios normales
+            let precioPorHora = 0;
             if (e === 5) precioPorHora = 2000;
             if (e === 6) precioPorHora = 2300;
             if (e === 8) precioPorHora = 2800;
             if (e === 11) precioPorHora = 4200;
 
-            // Lógica especial 8 elementos (promoción)
             if (e === 8 && h >= 2) {
                 totalFinal = (h === 2) ? 5000 : 5000 + ((h - 2) * 2200);
             } else {
@@ -129,7 +123,7 @@
         const e = document.getElementById('elem').options[document.getElementById('elem').selectedIndex].text;
 
         if (t === "---" || t === "$0.00") {
-            alert("Por favor selecciona una fecha y agrupación válida.");
+            alert("Selecciona una opción válida para esta fecha.");
             return;
         }
 
@@ -137,6 +131,5 @@
         window.open(`https://wa.me/522223976646?text=${encodeURIComponent(m)}`);
     }
 </script>
-
 </body>
 </html>
