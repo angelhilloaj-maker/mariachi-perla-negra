@@ -16,7 +16,8 @@
         input, select { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #444; border-radius: 8px; color: white; font-size: 15px; box-sizing: border-box; }
         .msg-error { background: #5a1212; color: #ff9999; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; display: none; text-align: center; border: 1px solid red; }
         .msg-festivo { background: rgba(212, 175, 55, 0.2); color: #fff3cd; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; display: none; text-align: center; border: 1px solid var(--dorado); }
-        .resumen-caja { background: var(--dorado); color: black; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center; }
+        .promo-tag { background: rgba(255, 255, 255, 0.1); border: 1px dashed var(--dorado); padding: 8px; border-radius: 8px; margin-top: 15px; display: none; font-size: 11px; text-align: center; color: #fff; }
+        .resumen-caja { background: var(--dorado); color: black; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; }
         .total-txt { font-size: 24px; font-weight: bold; display: block; }
         .btn-enviar { display: block; width: 100%; padding: 15px; background: #25d366; color: white; text-align: center; text-decoration: none; border-radius: 10px; margin-top: 15px; font-weight: bold; }
         .nota { font-size: 10px; color: #888; margin-top: 10px; font-style: italic; }
@@ -41,7 +42,7 @@
         <select id="elem" onchange="hacerCuentas()">
             <option value="5">5 Elementos</option>
             <option value="6">6 Elementos</option>
-            <option value="8">8 Elementos</option>
+            <option value="8" selected>8 Elementos</option>
             <option value="11">11 Elementos</option>
         </select>
         
@@ -50,6 +51,11 @@
 
         <label>Horas</label>
         <input type="number" id="hrs" value="1" min="1" oninput="hacerCuentas()">
+
+        <div id="promo" class="promo-tag">
+            ⭐ <strong>¡TARIFA PREFERENCIAL APLICADA!</strong><br>
+            Descuento por extensión de tiempo.
+        </div>
 
         <div class="resumen-caja">
             <small>TOTAL ESTIMADO</small>
@@ -70,6 +76,7 @@
         const h = parseInt(document.getElementById('hrs').value) || 1;
         const error = document.getElementById('error');
         const avisoFestivo = document.getElementById('festivo-aviso');
+        const promoTag = document.getElementById('promo');
         const totalVista = document.getElementById('total');
 
         if (!f) return;
@@ -82,10 +89,11 @@
         const esFinde = (diaSemana === 0 || diaSemana === 5 || diaSemana === 6);
         const esFestivo = festivos.includes(mmdd);
 
-        // CANDADO UNIFICADO: Si es Festivo O Fin de semana, solo permite el de 8
+        // Bloqueo de elementos
         if ((esFinde || esFestivo) && e !== 8) {
             error.style.display = "block";
             avisoFestivo.style.display = "none";
+            promoTag.style.display = "none";
             totalVista.innerText = "---";
             return;
         } else {
@@ -96,7 +104,7 @@
 
         if (esFestivo) {
             avisoFestivo.style.display = "block";
-            // Tarifa fija de festivo por hora
+            promoTag.style.display = "none";
             totalFinal = 3800 * h;
         } else {
             avisoFestivo.style.display = "none";
@@ -106,9 +114,12 @@
             if (e === 8) precioPorHora = 2800;
             if (e === 11) precioPorHora = 4200;
 
+            // Lógica de extensión de tiempo para 8 elementos
             if (e === 8 && h >= 2) {
+                promoTag.style.display = "block";
                 totalFinal = (h === 2) ? 5000 : 5000 + ((h - 2) * 2200);
             } else {
+                promoTag.style.display = "none";
                 totalFinal = precioPorHora * h;
             }
         }
@@ -123,7 +134,7 @@
         const e = document.getElementById('elem').options[document.getElementById('elem').selectedIndex].text;
 
         if (t === "---" || t === "$0.00") {
-            alert("Selecciona una opción válida para esta fecha.");
+            alert("Por favor selecciona una fecha y agrupación válida.");
             return;
         }
 
@@ -133,3 +144,4 @@
 </script>
 </body>
 </html>
+p
