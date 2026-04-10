@@ -6,83 +6,115 @@
     <title>Presupuesto Perla Negra</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --negro: #121212; --dorado: #d4af37; --perla: #f8f8f8; --input-bg: #1e1e1e; }
-        body { font-family: 'Poppins', sans-serif; background-color: #f0f0f0; padding: 10px; margin: 0; }
-        .cotizacion-export { max-width: 500px; margin: auto; background: var(--negro); color: var(--perla); border-radius: 20px; border: 3px solid var(--dorado); overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        .header { padding: 25px; text-align: center; background: linear-gradient(135deg, #2a2a2a, #0a0a0a); border-bottom: 2px solid var(--dorado); }
-        .header h1 { font-family: 'Cinzel', serif; color: var(--dorado); margin: 0; font-size: 24px; letter-spacing: 2px; }
-        .form-section { padding: 15px 20px; border-bottom: 1px solid #333; }
-        .section-title { font-family: 'Cinzel', serif; color: var(--dorado); font-size: 13px; border-bottom: 1px solid var(--dorado); margin-bottom: 10px; display: inline-block; }
-        label { display: block; color: #888; font-size: 10px; text-transform: uppercase; margin-top: 10px; letter-spacing: 1px; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box; }
-        
-        .leyenda-restriccion { font-size: 11px; color: #aaa; margin-top: 10px; line-height: 1.4; border-left: 2px solid var(--dorado); padding-left: 10px; font-style: italic; }
-        .alert-error { color: #ff5252; font-size: 12px; font-weight: bold; text-align: center; display: none; margin-top: 10px; padding: 10px; background: rgba(255,82,82,0.1); border-radius: 8px; border: 1px solid #ff5252; }
-        
-        .resumen { background: linear-gradient(135deg, var(--dorado) 0%, #b8860b 100%); color: var(--negro); padding: 20px; margin: 15px; border-radius: 15px; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
-        .row.total { font-size: 18px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; margin-top: 10px; }
-        .btn-wa { width: 100%; padding: 18px; background: #25d366; border: none; color: white; font-weight: 700; cursor: pointer; font-size: 15px; border-radius: 10px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+        :root { --negro: #121212; --dorado: #d4af37; --perla: #f8f8f8; }
+        body { font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: white; padding: 10px; margin: 0; }
+        .app-container { max-width: 450px; margin: auto; background: var(--negro); border: 2px solid var(--dorado); border-radius: 15px; overflow: hidden; }
+        .header { padding: 20px; text-align: center; border-bottom: 1px solid var(--dorado); }
+        .header h1 { font-family: 'Cinzel', serif; color: var(--dorado); margin: 0; font-size: 20px; }
+        .content { padding: 20px; }
+        label { display: block; font-size: 11px; color: var(--dorado); margin-top: 15px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #444; border-radius: 8px; color: white; font-size: 15px; box-sizing: border-box; }
+        .msg-error { background: #5a1212; color: #ff9999; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; display: none; text-align: center; border: 1px solid red; }
+        .resumen-caja { background: var(--dorado); color: black; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center; }
+        .total-txt { font-size: 24px; font-weight: bold; display: block; }
+        .btn-enviar { display: block; width: 100%; padding: 15px; background: #25d366; color: white; text-align: center; text-decoration: none; border-radius: 10px; margin-top: 15px; font-weight: bold; }
+        .nota { font-size: 10px; color: #888; margin-top: 10px; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="cotizacion-export">
+<div class="app-container">
     <div class="header">
         <h1>MARIACHI PERLA NEGRA</h1>
-        <p style="font-size: 10px; letter-spacing: 2px; color: var(--perla);">COTIZADOR OFICIAL</p>
+        <small>COTIZADOR OFICIAL</small>
     </div>
 
-    <div class="form-section">
-        <div class="section-title">DATOS DEL EVENTO</div>
-        
-        <label>Nombre del Cliente</label>
-        <input type="text" id="nombre_cliente" placeholder="Escribe tu nombre">
+    <div class="content">
+        <label>Nombre</label>
+        <input type="text" id="nom" placeholder="Tu nombre">
 
-        <label>Fecha del Evento</label>
-        <input type="date" id="fecha" onchange="calcular()">
+        <label>Fecha</label>
+        <input type="date" id="fec" onchange="hacerCuentas()">
 
-        <label>Número de Elementos</label>
-        <select id="elementos" onchange="calcular()">
+        <label>Agrupación</label>
+        <select id="elem" onchange="hacerCuentas()">
             <option value="5">5 Elementos</option>
             <option value="6">6 Elementos</option>
             <option value="8">8 Elementos</option>
             <option value="11">11 Elementos</option>
         </select>
         
-        <div class="leyenda-restriccion">
-            * Lunes a Jueves: Todas las opciones disponibles.<br>
-            * Viernes, Sábado y Domingo: Solo disponible grupo de 8 elementos.
+        <p class="nota">* Lunes a Jueves: Todas las opciones.<br>* Vie, Sáb y Dom: Solo 8 elementos.</p>
+
+        <div id="error" class="msg-error">ESTA AGRUPACIÓN NO DISPONIBLE EN FIN DE SEMANA</div>
+
+        <label>Horas</label>
+        <input type="number" id="hrs" value="1" min="1" oninput="hacerCuentas()">
+
+        <div class="resumen-caja">
+            <small>TOTAL ESTIMADO</small>
+            <span class="total-txt" id="total">$0.00</span>
         </div>
 
-        <div id="error-msg" class="alert-error">ESTA AGRUPACIÓN NO ESTÁ DISPONIBLE EN LA FECHA SELECCIONADA</div>
-
-        <label>Horas de Servicio</label>
-        <input type="number" id="horas" value="1" min="1" oninput="calcular()">
-    </div>
-
-    <div class="resumen">
-        <div class="row"><span>Precio por Hora:</span><span id="precio_unitario">$0.00</span></div>
-        <div class="row total"><span>TOTAL ESTIMADO:</span><span id="total_resumen">$0.00</span></div>
-        <a id="wa-link" href="#" target="_blank" class="btn-wa" onclick="prepararMensaje()">RESERVAR POR WHATSAPP</a>
+        <a href="#" class="btn-enviar" onclick="enviar()">RESERVAR FECHA</a>
     </div>
 </div>
 
 <script>
-    function calcular() {
-        const fechaVal = document.getElementById('fecha').value;
-        const numElem = parseInt(document.getElementById('elementos').value);
-        const horas = parseInt(document.getElementById('horas').value) || 0;
-        const errorMsg = document.getElementById('error-msg');
+    function hacerCuentas() {
+        const f = document.getElementById('fec').value;
+        const e = parseInt(document.getElementById('elem').value);
+        const h = parseInt(document.getElementById('hrs').value) || 1;
+        const error = document.getElementById('error');
+        const totalVista = document.getElementById('total');
+
+        if (!f) return;
+
+        // Detectar día: 0=D, 5=V, 6=S
+        const fechaPartes = f.split('-');
+        const diaNum = new Date(fechaPartes[0], fechaPartes[1] - 1, fechaPartes[2]).getDay();
+        const esFinde = (diaNum === 0 || diaNum === 5 || diaNum === 6);
+
+        // RESTRICCIÓN
+        if (esFinde && e !== 8) {
+            error.style.display = "block";
+            totalVista.innerText = "---";
+            return;
+        } else {
+            error.style.display = "none";
+        }
+
+        let precio = 0;
+        if (e === 5) precio = 2000;
+        if (e === 6) precio = 2300;
+        if (e === 8) precio = 2800;
+        if (e === 11) precio = 4200;
+
+        let resultado = precio * h;
         
-        if(!fechaVal) return;
+        // Regla especial 8 elementos
+        if (e === 8 && h >= 2) {
+            resultado = (h === 2) ? 5000 : 5000 + ((h - 2) * 2200);
+        }
 
-        const partes = fechaVal.split('-');
-        const dt = new Date(partes[0], partes[1] - 1, partes[2]);
-        const diaSemana = dt.getDay(); // 0=D, 5=V, 6=S
-        const esFinDeSemana = (diaSemana === 0 || diaSemana === 5 || diaSemana === 6);
+        totalVista.innerText = "$" + resultado.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
 
-        // RESTRICCIÓN TOTAL: En fin de semana SOLO se permite el de 8
-        if (esFinDeSemana && numElem !== 8) {
-            errorMsg.style.display = "block";
-            document.getElementById('precio_unitario').innerText = "---";
+    function enviar() {
+        const t = document.getElementById('total').innerText;
+        const n = document.getElementById('nom').value || "Cliente";
+        const f = document.getElementById('fec').value;
+        const e = document.getElementById('elem').options[document.getElementById('elem').selectedIndex].text;
+
+        if (t === "---" || t === "$0.00") {
+            alert("Selecciona una opción válida para esa fecha.");
+            return;
+        }
+
+        const m = `Hola Perla Negra, coticé:\nCliente: ${n}\nFecha: ${f}\nGrupo: ${e}\nTotal: ${t}`;
+        window.open(`https://wa.me/522223976646?text=${encodeURIComponent(m)}`);
+    }
+</script>
+
+</body>
+</html>
